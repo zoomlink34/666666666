@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<body style="background:#000; color:#fff; font-family:sans-serif; display:flex; justify-content:center; align-items:center; height:100vh; margin:0;">
+    <div style="background:#111; padding:30px; border-radius:12px; width:320px; text-align:center; border:1px solid #333;">
+        <h2 style="color:#facc15">SECURE YOUR PLOT</h2>
+        <input type="text" id="bn" placeholder="Your Brand Name" style="width:90%; padding:12px; margin:10px 0; background:#000; border:1px solid #444; color:#fff; border-radius:5px;">
+        <input type="text" id="pid" placeholder="Preferred Plot ID (e.g. 500)" style="width:90%; padding:12px; margin:10px 0; background:#000; border:1px solid #444; color:#fff; border-radius:5px;">
+        <button onclick="send()" id="btn" style="width:100%; padding:15px; background:#ef4444; color:#fff; border:none; border-radius:5px; font-weight:bold; cursor:pointer;">SUBMIT ORDER</button>
+        <br><br><a href="index.html" style="color:#555; text-decoration:none; font-size:12px;">Back to Home</a>
+    </div>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
+    <script>
+        firebase.initializeApp({databaseURL: "https://m-legacy-5cf2b-default-rtdb.firebaseio.com/"});
+        function send() {
+            const n = document.getElementById('bn').value, p = document.getElementById('pid').value;
+            if(!n || !p) return alert("Please fill all fields!");
+            firebase.database().ref('orders/' + Date.now()).set({ name: n, plotID: p })
+            .then(() => { 
+                let h = JSON.parse(localStorage.getItem('myLegacyPlots') || "[]");
+                h.push(p); localStorage.setItem('myLegacyPlots', JSON.stringify(h));
+                alert("Order Successful! Contact WhatsApp for payment.");
+                window.location.href="index.html";
+            });
+        }
+    </script>
+</body>
+</html>
