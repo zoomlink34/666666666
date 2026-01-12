@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<body style="background:#050505; color:#fff; font-family:sans-serif; padding:20px;">
+    <div id="login" style="text-align:center; margin-top:50px;">
+        <h1 style="color:#facc15">CEO CONTROL PANEL</h1>
+        <input type="password" id="pw" placeholder="Enter Password" style="padding:12px; background:#111; color:#fff; border:1px solid #333; width:200px;">
+        <button onclick="auth()" style="padding:12px; background:#facc15; border:none; cursor:pointer; font-weight:bold;">LOGIN</button>
+    </div>
+
+    <div id="panel" style="display:none;">
+        <div style="background:#111; padding:15px; border-radius:10px; border:1px solid #facc15; margin-bottom:20px;">
+            <h3 style="margin-top:0;">STEP 1: UPLOAD LOGO</h3>
+            <a href="https://imgbb.com/upload" target="_blank" style="background:#22c55e; color:#000; padding:10px 20px; text-decoration:none; font-weight:bold; border-radius:5px; display:inline-block;">CLICK HERE TO UPLOAD PHOTO</a>
+            <p style="font-size:12px; color:#888;">আপলোড শেষ হলে ছবির উপর রাইট ক্লিক করে 'Copy Image Address' অথবা 'Direct Link' কপি করে নিচে দিন।</p>
+        </div>
+
+        <h2>PENDING ORDERS</h2>
+        <div id="list"></div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
+    <script>
+        firebase.initializeApp({databaseURL: "https://m-legacy-5cf2b-default-rtdb.firebaseio.com/"});
+        const db = firebase.database();
+
+        function auth() {
+            if(document.getElementById('pw').value === "KAWSARahmed22@@") {
+                document.getElementById('login').style.display='none';
+                document.getElementById('panel').style.display='block';
+                load();
+            } else { alert("Wrong Password!"); }
+        }
+
+        function load() {
+            db.ref('orders').on('value', s => {
+                const list = document.getElementById('list'); list.innerHTML = "";
+                const data = s.val(); if(!data) return list.innerHTML = "No pending orders.";
+                Object.keys(data).forEach(id => {
+                    list.innerHTML += `<div style="background:#111; padding:15px; border:1px solid #333; margin-bottom:10px; border-radius:8px;">
+                        <p><b>Brand:</b> ${data[id].name} (Requested ID: ${data[id].plotID})</p>
+                        <input type="text" id="img_${id}" placeholder="Paste Image Direct Link (from ImgBB)" style="width:90%; padding:10px; margin-bottom:10px;"><br>
+                        <input type="text" id="web_${id}" placeholder="Website URL" style="width:90%; padding:10px; margin-bottom:10px;"><br>
+                        <input type="number" id="plot_${id}" placeholder="Final Plot ID to Assign" style="width:90%; padding:10px; margin-bottom:10px;"><br>
+                        <button onclick="approve('${id}', '${data[id].name}')" style="background:green; color:#fff; padding:10px 20px; border:none; cursor:pointer; font-weight:bold; border-radius:5px;">APPROVE & PUBLISH</button>
+                    </div>`;
+                });
+            });
+        }
+
+        function approve(id, name) {
+            const img = document.getElementById('img_'+id).value, 
+                  web = document.getElementById('web_'+id).value, 
+                  pID = parseInt(document.getElementById('plot_'+id).value);
+            if(!img || !web || !pID) return alert("All fields are required!");
+            
+            const x = ((pID-1) % 100) * 60, y = Math.floor((pID-1) / 100) * 40;
+            db.ref('pixels/' + id).set({ name, imageUrl: img, link: web, x, y, plotID: pID })
+            .then(() => { db.ref('orders/' + id).remove(); alert("Brand is now Live!"); });
+        }
+    </script>
+</body>
+</html>
